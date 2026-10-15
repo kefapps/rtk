@@ -22,7 +22,7 @@ jobs:
     if: >-
       github.ref == 'refs/heads/develop'
       || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master')
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, rtk-deploy-linux]
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
     steps:
@@ -99,7 +99,7 @@ jobs:
 
   release-please:
     if: github.ref == 'refs/heads/master' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, rtk-deploy-linux]
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
@@ -133,7 +133,7 @@ jobs:
     name: Update 'latest' tag
     needs: [release-please, build-release]
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, rtk-deploy-linux]
     steps:
       - uses: actions/create-github-app-token@v3
         id: app-token

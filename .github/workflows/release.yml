@@ -31,31 +31,20 @@ env:
 jobs:
   build:
     name: Build ${{ matrix.target }}
-    runs-on: ${{ matrix.os }}
+    runs-on: [self-hosted, rtk-deploy-linux]
     strategy:
       fail-fast: false
+      # Jambes macOS/Windows neutralisées : aucun runner self-hosted Windows/macOS
+      # disponible (MES-4166) ; rétablir après onboarding d'une capacité.
       matrix:
         include:
-          # macOS
-          - target: x86_64-apple-darwin
-            os: macos-latest
-            archive: tar.gz
-          - target: aarch64-apple-darwin
-            os: macos-latest
-            archive: tar.gz
           # Linux
           - target: x86_64-unknown-linux-musl
-            os: ubuntu-latest
             archive: tar.gz
             musl: true
           - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest
             archive: tar.gz
             cross: true
-          # Windows
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-            archive: zip
 
     steps:
       - name: Checkout
@@ -86,17 +75,9 @@ jobs:
           RTK_TELEMETRY_TOKEN: ${{ secrets.RTK_TELEMETRY_TOKEN }}
 
       - name: Package (Unix)
-        if: matrix.os != 'windows-latest'
         run: |
           cd target/${{ matrix.target }}/release
           tar -czvf ../../../rtk-${{ matrix.target }}.${{ matrix.archive }} rtk
-          cd ../../..
-
-      - name: Package (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          cd target/${{ matrix.target }}/release
-          7z a ../../../rtk-${{ matrix.target }}.${{ matrix.archive }} rtk.exe
           cd ../../..
 
       - name: Upload artifact
@@ -107,7 +88,7 @@ jobs:
 
   build-deb:
     name: Build DEB package
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, rtk-deploy-linux]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -132,7 +113,7 @@ jobs:
 
   build-rpm:
     name: Build RPM package
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, rtk-deploy-linux]
     container: fedora:latest
     steps:
       - name: Checkout
@@ -163,7 +144,7 @@ jobs:
   release:
     name: Create Release
     needs: [build, build-deb, build-rpm]
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, rtk-deploy-linux]
     steps:
       - uses: actions/create-github-app-token@v3
         id: app-token
@@ -221,7 +202,7 @@ jobs:
     name: Notify Discord
     needs: [release]
     if: ${{ !inputs.prerelease }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, rtk-deploy-linux]
     steps:
       - name: Get version
         id: version
@@ -255,7 +236,7 @@ jobs:
     name: Update Homebrew formula
     needs: [release]
     if: ${{ !inputs.prerelease }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, rtk-deploy-linux]
     steps:
       - name: Get version
         id: version
