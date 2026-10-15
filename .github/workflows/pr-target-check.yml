@@ -6,7 +6,7 @@ on:
 
 jobs:
   check-target:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, rtk-deploy-linux]
     # Skip develop→master PRs (maintainer releases)
     if: >-
       github.event.pull_request.base.ref == 'master' &&

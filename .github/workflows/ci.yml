@@ -16,7 +16,7 @@ jobs:
 
   check-test-presence:
     name: test presence
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, rtk-tests-linux]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,7 +28,7 @@ jobs:
 
   fmt:
     name: fmt
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, rtk-tests-linux]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -39,7 +39,7 @@ jobs:
   clippy:
     name: clippy
     needs: fmt
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, rtk-tests-linux]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -51,13 +51,11 @@ jobs:
   # ─── Parallel gates (all need code to compile) ───
 
   test:
-    name: test (${{ matrix.os }})
+    name: test
     needs: clippy
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+    # Jambes Windows/macOS restreintes : aucun runner self-hosted Windows/macOS
+    # disponible (MES-4166) ; rétablir la matrice après onboarding d'une capacité.
+    runs-on: [self-hosted, rtk-tests-linux]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -67,7 +65,7 @@ jobs:
   security:
     name: Security Scan
     needs: clippy
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, rtk-tests-linux]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -188,7 +186,7 @@ jobs:
   semgrep:
     name: semgrep security scan
     needs: clippy
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, rtk-tests-linux]
     container:
       image: semgrep/semgrep
     steps:
@@ -200,7 +198,7 @@ jobs:
   benchmark:
     name: benchmark
     needs: clippy
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, rtk-tests-linux]
     steps:
       - uses: actions/checkout@v4
 
@@ -234,7 +232,7 @@ jobs:
   doc-review:
     name: doc review
     if: github.base_ref == 'develop'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, rtk-deploy-linux]
     steps:
       - uses: actions/checkout@v4
         with:
